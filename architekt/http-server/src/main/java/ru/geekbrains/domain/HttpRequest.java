@@ -1,7 +1,14 @@
 package ru.geekbrains.domain;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.util.Map;
 
+@Getter
+@Setter
+@NoArgsConstructor
 public class HttpRequest {
 
     private String method;
@@ -12,5 +19,5 @@ public class HttpRequest {
 
     private String body;
 
-    // TODO constructors, getters, setters
+    private Map<String, String> parameters;
 }

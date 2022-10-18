@@ -1,5 +1,11 @@
 package ru.geekbrains;
 
+import ru.geekbrains.Parser.RequestParser;
+import ru.geekbrains.Parser.SimpleParser;
+import ru.geekbrains.Serializer.ResponseSerializer;
+import ru.geekbrains.Serializer.SimpleSerializer;
+import ru.geekbrains.domain.HttpRequest;
+import ru.geekbrains.domain.HttpResponse;
 import ru.geekbrains.logger.ConsoleLogger;
 import ru.geekbrains.logger.Logger;
 
@@ -13,7 +19,7 @@ public class RequestHandler implements Runnable {
 
     private static final String WWW = "/Users/aleks/dev/geek-architecture-123/www";
 
-    private static final Logger logger = new ConsoleLogger();
+    private static final Logger logger = ConsoleLogger.getInstance();
 
     private final SocketService socketService;
 
@@ -21,31 +27,31 @@ public class RequestHandler implements Runnable {
         this.socketService = socketService;
     }
 
+    private final RequestParser parser = SimpleParser.getInstance();
+    private final ResponseSerializer serializer = SimpleSerializer.getInstance();
+
     @Override
     public void run() {
 
-        List<String> request = socketService.readRequest();
+        HttpRequest httpRequest = parser.parse(socketService.readRequest());
 
-        // TODO use here implementation of interface RequestParser
-        String[] parts = request.get(0).split(" ");
+        Path path = Paths.get(WWW, httpRequest.getPath());
 
-        Path path = Paths.get(WWW, parts[1]);
+        HttpResponse response = new HttpResponse();
+
         if (!Files.exists(path)) {
-            // TODO use implementation of interface ResponseSerializer
-            socketService.writeResponse(
-                    "HTTP/1.1 404 NOT_FOUND\n" +
-                            "Content-Type: text/html; charset=utf-8\n" +
-                            "\n",
-                   new StringReader("<h1>Файл не найден!</h1>\n")
+            response.setStatusCode(404);
+            response.setStatus("NOT_FOUND");
+            socketService.writeResponse(serializer.serialize(response),
+                 new StringReader("<h1>Файл не найден!</h1>\n")
             );
             return;
         }
 
         try {
-            // TODO use implementation of interface ResponseSerializer
-            socketService.writeResponse("HTTP/1.1 200 OK\n" +
-                    "Content-Type: text/html; charset=utf-8\n" +
-                    "\n",
+            response.setStatusCode(200);
+            response.setStatus("OK");
+            socketService.writeResponse(serializer.serialize(response),
                     Files.newBufferedReader(path));
         } catch (IOException e) {
             throw new RuntimeException(e);

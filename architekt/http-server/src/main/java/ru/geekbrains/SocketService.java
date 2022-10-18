@@ -11,7 +11,7 @@ import java.util.List;
 
 public class SocketService implements Closeable {
 
-    private static final Logger logger = new ConsoleLogger();
+    private static final Logger logger = ConsoleLogger.getInstance();
 
     private final Socket socket;
 
@@ -44,7 +44,13 @@ public class SocketService implements Closeable {
             PrintWriter output = new PrintWriter(socket.getOutputStream());
             output.print(headers);
             if ( reader != null) {
-                reader.transferTo(output);
+                BufferedReader bufferedReader = new BufferedReader(reader);
+                String line;
+                while ((line = bufferedReader.readLine()) != null)
+                {
+                    output.print(line);
+                }
+                bufferedReader.close();
             }
             output.flush();
         } catch (IOException ex) {

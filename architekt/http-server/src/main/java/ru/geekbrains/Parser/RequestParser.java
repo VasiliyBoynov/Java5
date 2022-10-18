@@ -1,4 +1,4 @@
-package ru.geekbrains;
+package ru.geekbrains.Parser;
 
 import ru.geekbrains.domain.HttpRequest;
 

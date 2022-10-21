@@ -37,11 +37,11 @@ public class RequestHandler implements Runnable {
 
         Path path = Paths.get(WWW, httpRequest.getPath());
 
-        HttpResponse response = new HttpResponse();
-
         if (!Files.exists(path)) {
-            response.setStatusCode(404);
-            response.setStatus("NOT_FOUND");
+            HttpResponse response = HttpResponse.createResponse()
+                .withStatus("NOT_FOUND")
+                .withStatusCode(404)
+                .build();
             socketService.writeResponse(serializer.serialize(response),
                  new StringReader("<h1>Файл не найден!</h1>\n")
             );
@@ -49,8 +49,10 @@ public class RequestHandler implements Runnable {
         }
 
         try {
-            response.setStatusCode(200);
-            response.setStatus("OK");
+            HttpResponse response = HttpResponse.createResponse()
+                .withStatus("OK")
+                .withStatusCode(200)
+                .build();
             socketService.writeResponse(serializer.serialize(response),
                     Files.newBufferedReader(path));
         } catch (IOException e) {

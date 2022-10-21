@@ -23,47 +23,39 @@ public class SimpleParser implements RequestParser
 	public HttpRequest parse(List<String> rawRequest)
 	{
 		Log.info("Старт преобразования запроса");
-		HttpRequest request = new HttpRequest();
+
 		try
 		{
-			request.setMethod(
-				Arrays.stream(Metod.values())
-					.map(Enum::name)
-					.filter(m -> rawRequest.get(0).startsWith(m))
-					.findFirst()
-					.orElseThrow(IllegalArgumentException::new));
+			String method = Arrays.stream(Metod.values())
+				.map(Enum::name)
+				.filter(m -> rawRequest.get(0).startsWith(m))
+				.findFirst()
+				.orElseThrow(IllegalArgumentException::new);
 
-			request.setPath(Arrays.stream(rawRequest.get(0).split(" "))
+			String path = Arrays.stream(rawRequest.get(0).split(" "))
 				.skip(1L)
 				.findFirst()
-				.orElseThrow(IllegalArgumentException::new));
+				.orElseThrow(IllegalArgumentException::new);
 
 			Map<String, String> map = new HashMap<>();
 
 			rawRequest.stream()
 				.filter(str -> str.contains(": "))
 				.forEach(s -> {
-				String[] str = s.split(": ");
-				if (str[0] != null)
-				{
-					map.put(str[0], str[1]);
-				}
-			});
-
-			request.setHeaders(map);
-
-			if (request.getPath().contains("?"))
-			{
-				Map<String, String> param = new HashMap<>();
-				Arrays.stream(request.getPath().split("\\?")).skip(1L).findFirst().ifPresent(str -> {
-					for (String s : str.split("&"))
+					String[] str = s.split(": ");
+					if (str[0] != null)
 					{
-						String[] sArray = s.split("=");
-						param.put(sArray[0], sArray[1]);
+						map.put(str[0], str[1]);
 					}
-					request.setParameters(param);
 				});
-			}
+
+			HttpRequest request = HttpRequest.createRequest()
+				.withMethod(method)
+				.withPath(path)
+				.withHeaders(map)
+				.build();
+
+			return request;
 		}
 		catch (Exception e)
 		{
@@ -71,6 +63,6 @@ public class SimpleParser implements RequestParser
 			Log.info("Не возможно преобразовать в HTTP запрос");
 			return null;
 		}
-		return request;
+
 	}
 }
